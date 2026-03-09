@@ -1,0 +1,104 @@
+rules:
+  - id: "table"
+    enabled: true
+    name: "Стол до 6000 RSD / 60 EUR"
+    keywords_any:
+      - "стол"
+    keywords_all: []
+    exclude: []
+    scope:
+      include_channels: []
+      exclude_channels: []
+    price:
+      min: null
+      max: 60
+      currency: "EUR"
+      require_detected: true
+  
+  - id: "стул"
+    enabled: true
+    name: "Стул до 6000 RSD / 60 EUR"
+    keywords_any:
+      - "стул"
+    keywords_all: []
+    exclude: []
+    scope:
+      include_channels: []
+      exclude_channels: []
+    price:
+      min: null
+      max: 60
+      currency: "EUR"
+      require_detected: true
+
+  - id: "robot_vacuum"
+    enabled: true
+    name: "Робот-пылесос до 15000 RSD / 150 EUR"
+    keywords_any:
+      - "робот-пылесос"
+      - "xiaomi robot"
+      - "vacuum"
+      - "пылесос"
+      - "робот пылесос"
+    keywords_all: []
+    exclude: []
+    scope:
+      include_channels: []
+      exclude_channels: []
+    price:
+      min: null
+      max: 150
+      currency: "EUR"
+      require_detected: true
+
+  - id: "pouf_beanbag"
+    enabled: true
+    name: "Пуф или кресло-мешок до 6000 RSD / 60 EUR"
+    keywords_any:
+      - "пуф"
+      - "кресло-мешок"
+      - "кресло мешок"
+      - "пуфик"
+    keywords_all: []
+    exclude: []
+    scope:
+      include_channels: []
+      exclude_channels: []
+    price:
+      min: null
+      max: 60
+      currency: "EUR"
+      require_detected: true
+
+  - id: "test"
+    enabled: true
+    name: "тест"
+    keywords_any:
+      - "тест"
+    keywords_all: []
+    exclude: []
+    scope:
+      include_channels: []
+      exclude_channels: []
+    price:
+      min: null
+      max: 60
+      currency: "EUR"
+      require_detected: true
+
+  - id: "iphone"
+    enabled: true
+    name: "iPhone"
+    keywords_any:
+      - "айфон"
+      - "iphone"
+    keywords_all: []
+    exclude: []
+    scope:
+      include_channels: []
+      exclude_channels: []
+    price:
+      min: null
+      max: 600
+      currency: "EUR"
+      require_detected: true

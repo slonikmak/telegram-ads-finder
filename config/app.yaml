@@ -1,0 +1,19 @@
+app:
+  timezone: "Europe/Belgrade"
+  base_currency: "EUR"
+  dry_run: false
+
+exchange_rates:
+  EUR: 1
+  RSD: 117.2
+
+matching:
+  dedupe_window_minutes: 120
+  require_price_if_rule_has_price: true
+
+notifications:
+  enabled: true
+  send_on_match: true
+
+polling:
+  interval_seconds: 60
