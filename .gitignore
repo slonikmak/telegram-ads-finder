@@ -1,3 +1,7 @@
+# Configuration
+config/
+!config_example/
+
 # Dependencies
 node_modules/
 
@@ -12,9 +16,6 @@ logs/
 
 # Database and Session data
 data/
-*.db
-*.db-shm
-*.db-wal
 
 # Editor / IDE
 .vscode/
