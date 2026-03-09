@@ -167,21 +167,30 @@ async function main() {
 
         // 2. Resolve channel IDs before polling
         for (const ch of channels) {
+            if (!ch.enabled) continue;
             try {
-                const isNumericId = /^\d+$/.test(ch.id);
+                let entity;
+                // If ID is pure number (e.g. 123456 or -100123), try to pass it to BigInt
+                const isNumericId = /^-?\d+$/.test(ch.id);
                 if (isNumericId) {
-                    ch.resolvedId = normalizeChannelId(ch.id);
-                    logger.info({ id: ch.id, resolvedId: ch.resolvedId, label: ch.label }, 'Channel registered by numeric ID');
-                    continue;
+                    try {
+                        entity = await client.getEntity(BigInt(ch.id));
+                    } catch (idErr) {
+                        logger.debug({ id: ch.id, err: idErr.message }, 'Failed to get entity as BigInt, retrying as string');
+                    }
                 }
-                // @username — resolve via GramJS
-                const entity = await client.getEntity(ch.id);
+
+                if (!entity) {
+                    entity = await client.getEntity(ch.id);
+                }
+
+                ch.resolvedEntity = entity;
                 ch.resolvedId = normalizeChannelId(entity.id);
                 if (entity.title) ch.resolvedTitle = entity.title;
                 if (entity.username) ch.resolvedUsername = entity.username;
                 logger.info({ id: ch.id, resolvedId: ch.resolvedId, title: ch.resolvedTitle }, 'Resolved channel details');
             } catch (err) {
-                logger.error({ id: ch.id, err: err.message }, 'Could not resolve channel details on startup');
+                logger.error({ id: ch.id, err: err.message }, 'Could not resolve channel details on startup. Check if ID is correct or Bot/User is a member.');
             }
         }
 

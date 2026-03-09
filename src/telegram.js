@@ -42,6 +42,14 @@ export async function startTelegramClient({ apiId, apiHash, sessionPath }) {
 
     logger.info('Telegram client started');
 
+    // Populate entity cache by fetching some dialogs
+    try {
+        await client.getDialogs({ limit: 50 });
+        logger.debug('Entity cache populated from dialogs');
+    } catch (err) {
+        logger.warn({ err: err.message }, 'Failed to fetch dialogs, entity resolution might be unstable');
+    }
+
     // Save session
     const finalSession = client.session.save();
     fs.writeFileSync(sessionFile, finalSession, 'utf8');
@@ -61,7 +69,7 @@ export async function startTelegramClient({ apiId, apiHash, sessionPath }) {
  * @returns {Promise<Array>} Array of GramJS Message objects, oldest first
  */
 export async function fetchNewMessages(client, channel, minId, limit = 100) {
-    const entity = channel.id;
+    const entity = channel.resolvedEntity || channel.id;
     const messages = [];
 
     try {
@@ -97,7 +105,8 @@ export async function fetchNewMessages(client, channel, minId, limit = 100) {
  */
 export async function fetchLatestMessageId(client, channel) {
     try {
-        for await (const msg of client.iterMessages(channel.id, { limit: 1 })) {
+        const entity = channel.resolvedEntity || channel.id;
+        for await (const msg of client.iterMessages(entity, { limit: 1 })) {
             return msg.id;
         }
         return null;
