@@ -1,8 +1,8 @@
 channels:
-  - id: "serbska_baraholka"
+  - id: "channel_id"
     enabled: true
-    label: "Serbska Baraholka"
+    label: "Channel Label"
     topics: [25080, 22122]
-  - id: "3835843274"
+  - id: "channel_id"
     enabled: true
-    label: "My Private Channel"
+    label: "Channel Label"

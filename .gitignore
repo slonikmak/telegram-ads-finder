@@ -1,6 +1,5 @@
 # Configuration
 config/
-!config_example/
 
 # Dependencies
 node_modules/
@@ -29,7 +28,3 @@ data/
 # OS files
 Thumbs.db
 .DS_Store
-
-# Agents / AI generated
-.agents/
-.gemini/
