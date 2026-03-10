@@ -1,5 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert';
 import { tokenizeAndStem } from '../src/nlp.js';
 import { matchMessage } from '../src/matcher.js';
+
+const appConfig = {
+    app: { base_currency: 'EUR' },
+    exchange_rates: { RSD: 117 }
+};
 
 const rules = [
     {
@@ -24,52 +31,43 @@ rules.forEach(rule => {
     if (rule.exclude) rule.exclude_stemmed = rule.exclude.map(kw => tokenizeAndStem(kw));
 });
 
-const appConfig = {
-    app: { base_currency: 'EUR' },
-    exchange_rates: { RSD: 117 }
-};
-
 const messages = [
     {
         id: 1,
-        text_normalized: "сдаю свою квартиру в белграде",
-        tokens_stemmed: tokenizeAndStem("сдаю свою квартиру в белграде"),
+        text_normalized: 'сдаю свою квартиру в белграде',
+        tokens_stemmed: tokenizeAndStem('сдаю свою квартиру в белграде'),
         price_value: 500,
         price_currency: 'EUR'
     },
     {
         id: 2,
-        text_normalized: "продам котел отличный",
-        tokens_stemmed: tokenizeAndStem("продам котел отличный"),
+        text_normalized: 'продам котел отличный',
+        tokens_stemmed: tokenizeAndStem('продам котел отличный'),
         price_value: 100,
         price_currency: 'EUR'
     },
     {
         id: 3,
-        text_normalized: "мой кот любит поспать",
-        tokens_stemmed: tokenizeAndStem("мой кот любит поспать"),
+        text_normalized: 'мой кот любит поспать',
+        tokens_stemmed: tokenizeAndStem('мой кот любит поспать'),
         price_value: null,
         price_currency: null
     }
 ];
 
-console.log("Running integration matching tests...");
-
-messages.forEach(msg => {
-    const matches = matchMessage(msg, rules, appConfig);
-    console.log(`Msg ${msg.id}: "${msg.text_normalized}"`);
-    console.log(`  Matches: ${matches.map(m => m.ruleId).join(', ') || 'None'}`);
+test('stemming: "квартиру" should match rule with keyword "квартира"', () => {
+    const matches = matchMessage(messages[0], rules, appConfig);
+    assert.strictEqual(matches.length, 1);
+    assert.strictEqual(matches[0].ruleId, 'r1');
 });
 
-// Verification
-const m1 = matchMessage(messages[0], rules, appConfig);
-if (m1.length === 1 && m1[0].ruleId === 'r1') console.log("Test 1 PASSED: 'квартиру' matched 'квартира'");
-else console.log("Test 1 FAILED");
+test('word boundary: "котел" should NOT match rule with keyword "кот"', () => {
+    const matches = matchMessage(messages[1], rules, appConfig);
+    assert.strictEqual(matches.length, 0);
+});
 
-const m2 = matchMessage(messages[1], rules, appConfig);
-if (m2.length === 0) console.log("Test 2 PASSED: 'котел' did NOT match 'кот'");
-else console.log("Test 2 FAILED");
-
-const m3 = matchMessage(messages[2], rules, appConfig);
-if (m3.length === 1 && m3[0].ruleId === 'r2') console.log("Test 3 PASSED: 'кот' matched 'кот'");
-else console.log("Test 3 FAILED");
+test('exclude: "кот" should match rule even with exclude ["котел"] when text does not contain "котел"', () => {
+    const matches = matchMessage(messages[2], rules, appConfig);
+    assert.strictEqual(matches.length, 1);
+    assert.strictEqual(matches[0].ruleId, 'r2');
+});
