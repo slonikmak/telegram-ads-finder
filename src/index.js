@@ -4,7 +4,7 @@ import pino from 'pino';
 import { loadAppConfig, loadChannelsConfig, loadRulesConfig, validateConfigs } from './config.js';
 import { initDb, insertMessage, insertMatch, insertNotification, findRecentDuplicateByHash } from './db.js';
 import { normalizeText } from './normalize.js';
-import { extractPrice } from './price.js';
+import { extractPrice, extractPrices } from './price.js';
 import { getContentHash } from './hash.js';
 import { matchMessage } from './matcher.js';
 import { initNotifier, sendTelegramNotification } from './notifier.js';
@@ -79,8 +79,9 @@ async function processMessage(tgMsg, channelConfig, context) {
     }
 
     const textNormalized = normalizeText(textRaw);
-    const price = extractPrice(textNormalized, appConfig);
-    const hash = getContentHash(textNormalized, price.value, price.currency);
+    const prices = extractPrices(textNormalized, appConfig);
+    const primaryPrice = prices.length > 0 ? prices[0] : { raw: null, value: null, currency: null, value_eur: null, fx_rate_used: null };
+    const hash = getContentHash(textNormalized, primaryPrice.value, primaryPrice.currency);
 
     // Deduplication check
     const existing = findRecentDuplicateByHash(hash);
@@ -98,11 +99,12 @@ async function processMessage(tgMsg, channelConfig, context) {
         message_date: new Date(tgMsg.date * 1000).toISOString(),
         text_raw: textRaw,
         text_normalized: textNormalized,
-        price_raw: price.raw,
-        price_value: price.value,
-        price_currency: price.currency,
-        price_value_eur: price.value_eur,
-        fx_rate_used: price.fx_rate_used,
+        price_raw: primaryPrice.raw,
+        price_value: primaryPrice.value,
+        price_currency: primaryPrice.currency,
+        price_value_eur: primaryPrice.value_eur,
+        prices: prices, // Full list for matcher
+        fx_rate_used: primaryPrice.fx_rate_used,
         fx_date: new Date().toISOString(),
         message_link: msgLink,
         content_hash: hash

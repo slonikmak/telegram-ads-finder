@@ -35,32 +35,55 @@ export function matchMessage(message, rules, appConfig) {
 
         // 5. Check price
         if (rule.price) {
-            if (rule.price.require_detected && message.price_value === null) {
+            const pricesToCheck = message.prices || (message.price_value !== null ? [{
+                value: message.price_value,
+                currency: message.price_currency
+            }] : []);
+
+            if (rule.price.require_detected && pricesToCheck.length === 0) {
                 continue;
             }
 
-            if (message.price_value !== null) {
+            let triggeredPrice = null;
+
+            if (pricesToCheck.length > 0) {
                 const ruleCurrency = rule.price.currency || appConfig.app.base_currency;
-                const messagePriceInRuleCurrency = convertPrice(
-                    message.price_value,
-                    message.price_currency,
-                    ruleCurrency,
-                    appConfig.exchange_rates
-                );
 
-                if (rule.price.min !== null && messagePriceInRuleCurrency < rule.price.min) continue;
-                if (rule.price.max !== null && messagePriceInRuleCurrency > rule.price.max) continue;
+                triggeredPrice = pricesToCheck.find(p => {
+                    const priceInRuleCurrency = convertPrice(
+                        p.value,
+                        p.currency,
+                        ruleCurrency,
+                        appConfig.exchange_rates
+                    );
+
+                    if (rule.price.min !== null && priceInRuleCurrency < rule.price.min) return false;
+                    if (rule.price.max !== null && priceInRuleCurrency > rule.price.max) return false;
+
+                    return true;
+                });
+
+                if (!triggeredPrice) continue;
             }
-        }
 
-        // Everything passed!
-        matches.push({
-            ruleId: rule.id,
-            messageId: message.id,
-            matchedPrice: message.price_value,
-            matchedCurrency: message.price_currency,
-            score: 1.0
-        });
+            // Everything passed!
+            matches.push({
+                ruleId: rule.id,
+                messageId: message.id,
+                matchedPrice: triggeredPrice ? triggeredPrice.value : message.price_value,
+                matchedCurrency: triggeredPrice ? triggeredPrice.currency : message.price_currency,
+                score: 1.0
+            });
+        } else {
+            // No price filter in rule, everything passed!
+            matches.push({
+                ruleId: rule.id,
+                messageId: message.id,
+                matchedPrice: message.price_value,
+                matchedCurrency: message.price_currency,
+                score: 1.0
+            });
+        }
     }
 
     return matches;
