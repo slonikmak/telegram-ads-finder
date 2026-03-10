@@ -7,7 +7,7 @@ export function normalizeText(input) {
         .replace(/\s+/g, ' ')
         // Keep letters (latin, cyrillic, serbian), numbers, currency symbols, and basic punctuation
         // Serbian latin specific: č, ć, dž, đ, lj, nj, š, ž
-        .replace(/[^\p{L}\p{N}\s€$£¥dinдинара]/gu, ' ')
+        .replace(/[^\p{L}\p{N}\s€$£¥\-]/gu, ' ')
         .replace(/\s+/g, ' ')
         .trim();
 }
