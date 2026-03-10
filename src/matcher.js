@@ -16,19 +16,34 @@ export function matchMessage(message, rules, appConfig) {
         }
 
         // 2. Check exclude keywords
-        if (rule.exclude && rule.exclude.length > 0) {
+        if (rule.exclude_stemmed && rule.exclude_stemmed.length > 0) {
+            const hasExclude = rule.exclude_stemmed.some(phraseStems =>
+                phraseStems.every(stem => message.tokens_stemmed.includes(stem))
+            );
+            if (hasExclude) continue;
+        } else if (rule.exclude && rule.exclude.length > 0) {
             const hasExclude = rule.exclude.some(kw => message.text_normalized.includes(kw.toLowerCase()));
             if (hasExclude) continue;
         }
 
         // 3. Check keywords_any
-        if (rule.keywords_any && rule.keywords_any.length > 0) {
+        if (rule.keywords_any_stemmed && rule.keywords_any_stemmed.length > 0) {
+            const hasAny = rule.keywords_any_stemmed.some(phraseStems =>
+                phraseStems.every(stem => message.tokens_stemmed.includes(stem))
+            );
+            if (!hasAny) continue;
+        } else if (rule.keywords_any && rule.keywords_any.length > 0) {
             const hasAny = rule.keywords_any.some(kw => message.text_normalized.includes(kw.toLowerCase()));
             if (!hasAny) continue;
         }
 
         // 4. Check keywords_all
-        if (rule.keywords_all && rule.keywords_all.length > 0) {
+        if (rule.keywords_all_stemmed && rule.keywords_all_stemmed.length > 0) {
+            const hasAll = rule.keywords_all_stemmed.every(phraseStems =>
+                phraseStems.every(stem => message.tokens_stemmed.includes(stem))
+            );
+            if (!hasAll) continue;
+        } else if (rule.keywords_all && rule.keywords_all.length > 0) {
             const hasAll = rule.keywords_all.every(kw => message.text_normalized.includes(kw.toLowerCase()));
             if (!hasAll) continue;
         }

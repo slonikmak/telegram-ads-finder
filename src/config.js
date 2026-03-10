@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
 import pino from 'pino';
+import { tokenizeAndStem } from './nlp.js';
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
@@ -24,7 +25,21 @@ export function loadChannelsConfig(configDir) {
 
 export function loadRulesConfig(configDir) {
     const data = loadYaml(path.join(configDir, 'rules.yaml'));
-    return data.rules || [];
+    const rules = data.rules || [];
+
+    for (const rule of rules) {
+        if (rule.keywords_any) {
+            rule.keywords_any_stemmed = rule.keywords_any.map(kw => tokenizeAndStem(kw));
+        }
+        if (rule.keywords_all) {
+            rule.keywords_all_stemmed = rule.keywords_all.map(kw => tokenizeAndStem(kw));
+        }
+        if (rule.exclude) {
+            rule.exclude_stemmed = rule.exclude.map(kw => tokenizeAndStem(kw));
+        }
+    }
+
+    return rules;
 }
 
 export function validateConfigs(app, channels, rules) {

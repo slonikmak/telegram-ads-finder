@@ -4,6 +4,7 @@ import pino from 'pino';
 import { loadAppConfig, loadChannelsConfig, loadRulesConfig, validateConfigs } from './config.js';
 import { initDb, insertMessage, insertMatch, insertNotification, findRecentDuplicateByHash } from './db.js';
 import { normalizeText } from './normalize.js';
+import { tokenizeAndStem } from './nlp.js';
 import { extractPrice, extractPrices } from './price.js';
 import { getContentHash } from './hash.js';
 import { matchMessage } from './matcher.js';
@@ -99,6 +100,7 @@ async function processMessage(tgMsg, channelConfig, context) {
         message_date: new Date(tgMsg.date * 1000).toISOString(),
         text_raw: textRaw,
         text_normalized: textNormalized,
+        tokens_stemmed: tokenizeAndStem(textNormalized),
         price_raw: primaryPrice.raw,
         price_value: primaryPrice.value,
         price_currency: primaryPrice.currency,
