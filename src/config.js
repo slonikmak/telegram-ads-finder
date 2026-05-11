@@ -4,7 +4,10 @@ import yaml from 'yaml';
 import pino from 'pino';
 import { tokenizeAndStem } from './nlp.js';
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    timestamp: pino.stdTimeFunctions.isoTime
+});
 
 export function loadYaml(filePath) {
     if (!fs.existsSync(filePath)) {

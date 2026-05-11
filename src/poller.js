@@ -2,7 +2,10 @@ import pino from 'pino';
 import { fetchNewMessages, fetchLatestMessageId } from './telegram.js';
 import { getState, setState } from './db.js';
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    timestamp: pino.stdTimeFunctions.isoTime
+});
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

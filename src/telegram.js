@@ -5,7 +5,10 @@ import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    timestamp: pino.stdTimeFunctions.isoTime
+});
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -77,7 +80,6 @@ export async function fetchNewMessages(client, channel, minId, limit = 100) {
             minId: minId,
             reverse: true,
             limit: limit,
-            waitTime: 2,
         })) {
             messages.push(msg);
         }

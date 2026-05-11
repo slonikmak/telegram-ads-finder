@@ -1,21 +1,31 @@
 import TelegramBot from 'node-telegram-bot-api';
 import pino from 'pino';
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    timestamp: pino.stdTimeFunctions.isoTime
+});
 
 let bot;
 let allowedUsers = [];
+const blockedUsers = new Set();
 
 export function initNotifier(token, allowedUsersStr, callbacks = {}) {
     if (!token || !allowedUsersStr) {
         logger.warn('Notifier not initialized: missing token or allowed users');
         return;
     }
-    bot = new TelegramBot(token, { polling: true });
+    const enablePolling = (process.env.NOTIFIER_POLLING || '').toLowerCase() === 'true';
+    bot = new TelegramBot(token, { polling: enablePolling });
 
     allowedUsers = allowedUsersStr.toString().split(',').map(id => id.trim()).filter(id => id);
 
     const { getChannels, getRules } = callbacks;
+
+    if (!enablePolling) {
+        logger.info('Notifier initialized in send-only mode (polling disabled)');
+        return;
+    }
 
     bot.on('message', async (msg) => {
         if (!msg.text) return;
@@ -100,11 +110,25 @@ export async function sendTelegramNotification(payload) {
     let errors = [];
 
     for (const userId of allowedUsers) {
+        if (blockedUsers.has(userId)) {
+            continue;
+        }
+
         try {
             await bot.sendMessage(userId, text, { parse_mode: 'HTML', disable_web_page_preview: true });
             success = true;
         } catch (error) {
-            logger.error({ error, userId }, 'Failed to send notification');
+            const statusCode = error?.response?.statusCode;
+            const errMsg = error?.message || '';
+            const isBlocked = statusCode === 403 || errMsg.includes('bot was blocked by the user');
+
+            if (isBlocked) {
+                blockedUsers.add(userId);
+                logger.warn({ userId }, 'User blocked bot; notifications to this user are disabled for current process');
+            } else {
+                logger.error({ error, userId }, 'Failed to send notification');
+            }
+
             errors.push(error.message);
         }
     }

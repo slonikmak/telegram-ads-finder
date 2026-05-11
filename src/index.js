@@ -12,7 +12,10 @@ import { initNotifier, sendTelegramNotification } from './notifier.js';
 import { startTelegramClient } from './telegram.js';
 import { startPollingLoop } from './poller.js';
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    timestamp: pino.stdTimeFunctions.isoTime
+});
 
 /**
  * GramJS может возвращать channelId как BigInt из PeerChannel
@@ -210,7 +213,11 @@ async function main() {
         await startPollingLoop(client, channels, boundProcessMessage, { intervalMs });
 
     } catch (error) {
-        logger.error({ error }, 'Fatal error during startup');
+        logger.error({
+            err: error,
+            errorMessage: error?.message,
+            errorStack: error?.stack
+        }, 'Fatal error during startup');
         process.exit(1);
     }
 }
